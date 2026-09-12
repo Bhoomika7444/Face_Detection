@@ -50,36 +50,44 @@ Users upload a new photo (which can contain multiple people). The system detects
 ## 8. Similarity Matching
 We use **Cosine Similarity** to measure the distance between the query vector and database vectors. Since FaceNet vectors are L2-normalized, cosine similarity is equivalent to the dot product. It outputs a score between `[-1.0, 1.0]`, where higher means more similar.
 
-## 9. Threshold
+## 9. Threshold Calibration
 - **Threshold Value**: Configurable, default `0.60`.
-- **How Selected**: Empirically, FaceNet on `vggface2` separates identical and different identities cleanly around 0.60-0.65 cosine similarity.
-- **Why it matters**: A lower threshold increases False Acceptances (strangers admitted). A higher threshold increases False Rejections (enrolled users rejected due to poor lighting/pose).
+- **How Selected**: Empirically, FaceNet on `vggface2` separates identical and different identities cleanly around 0.60-0.65. However, this must be scientifically calibrated to your specific environment.
+- **Why it matters**: A lower threshold increases False Acceptances (FAR - strangers admitted). A higher threshold increases False Rejections (FRR - enrolled users rejected due to poor lighting/pose).
+- **How to Calibrate**: Run the evaluation sweep tool to scientifically determine the optimal threshold (Equal Error Rate - EER) for your dataset:
+  `python -m src.evaluation --test_dir data/test --sweep`
 
 ## 10. Unknown Rejection
 If the best candidate's similarity score is `0.45` and the threshold is `0.60`, the system explicitly overrides the highest match and outputs `UNKNOWN`. This is critical for security systems to prevent false positives.
 
 ## 11. Evaluation
-You can evaluate the system using the built-in evaluation harness. It calculates:
+You can evaluate the system using the built-in evaluation harness. It tests known/genuine faces vs unknown/impostor faces and calculates:
 - Known Person Accuracy (True Positive Rate)
 - Unknown Rejection Rate (True Negative Rate)
 - False Acceptance Rate (FAR)
 - False Rejection Rate (FRR)
 
-*(Run `pytest tests/` for automated verification of logic).*
+**To run the evaluation:**
+1. Place images of enrolled people in `data/test/known/{person_name}/`
+2. Place images of strangers in `data/test/unknown/{stranger_name}/`
+3. Run `python -m src.evaluation --test_dir data/test`
+
+*(Run `pytest tests/test_core.py` for automated verification of mathematical edge cases and threshold boundaries).*
 
 ## 12. Failure Cases
 - **Poor Lighting / Extreme Angles**: FaceNet struggles with profile (side) faces or extreme shadows.
 - **Low Resolution**: Faces smaller than 20x20 pixels might not trigger the MTCNN detector.
 - **Occlusion**: Masks or heavy sunglasses can reduce embedding quality and lower the similarity score, resulting in a false rejection.
 
-## 13. Limitations
+## 13. Limitations (Real-World Robustness)
+- **Lighting and Pose Variations**: Severe changes in lighting or angles between the enrolled photo and the tested photo can lower the similarity score, causing a False Rejection.
+- **Similar-looking people (Impostors)**: Friends or family members who look similar might score high enough to cause a False Acceptance if the threshold is set too permissively.
+- **Detector limitations**: Extremely blurry or low-res faces may be skipped by the MTCNN detector entirely.
 - The system stores raw embeddings without encryption. In a production environment, biometric templates should be securely encrypted.
-- Single-shot enrollment relies heavily on the quality of the uploaded photo.
 
-## 14. Improvements
-- **Multi-shot Enrollment**: Enrolling multiple angles of a user and storing a mean vector.
-- **Liveness Detection**: Adding a spoofing detector to prevent photo-of-a-photo attacks.
-- **Vector Database**: Migrating from JSON to a dedicated vector DB (e.g., FAISS or Milvus) for sub-millisecond retrieval at scale.
+## 14. Robustness Improvements Implemented
+- **Multi-shot Enrollment**: The system actively supports and encourages enrolling multiple images per person. By enrolling 2-3 images under different lighting conditions, the system creates a much more robust identity profile, dramatically lowering False Rejections when the threshold is raised to prevent False Acceptances.
+- **Threshold Sweeping**: Added a scientific calibration pipeline to calculate FAR/FRR trade-offs using test data.
 
 ## 15. Installation
 ```bash

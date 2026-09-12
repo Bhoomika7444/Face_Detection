@@ -1,5 +1,6 @@
 import os
 import time
+import numpy as np
 from typing import Tuple, Dict, List
 from .utils import load_image
 from .detector import FaceDetector
@@ -142,3 +143,143 @@ class FaceEvaluator:
             'total_known': total_known,
             'total_unknown': total_unknown
         }
+
+    def find_optimal_threshold(self, test_dir: str, start: float = 0.50, end: float = 0.90, step: float = 0.05):
+        """Sweeps thresholds and prints FAR/FRR to help find the Equal Error Rate (EER)."""
+        print(f"\n--- THRESHOLD SWEEP (Calibration) ---")
+        print(f"Testing thresholds from {start:.2f} to {end:.2f}...\n")
+        print(f"{'Threshold':<12} | {'FAR (False Accepts)':<22} | {'FRR (False Rejects)':<22} | {'Accuracy'}")
+        print("-" * 75)
+        
+        best_threshold = start
+        best_accuracy = 0
+        min_diff = 1.0 # For EER
+        eer_threshold = start
+        
+        # Generate thresholds safely to avoid floating point issues
+        thresholds = np.arange(start, end + (step/2), step)
+        
+        for t in thresholds:
+            metrics = self.evaluate_directory(test_dir, threshold=float(t))
+            if 'error' in metrics:
+                print("Error:", metrics['error'])
+                return
+                
+            far = metrics['false_acceptance_rate']
+            frr = metrics['false_rejection_rate']
+            acc = metrics['overall_accuracy']
+            
+            print(f"{t:<12.2f} | {far:<22.2%} | {frr:<22.2%} | {acc:.2%}")
+            
+            if acc > best_accuracy:
+                best_accuracy = acc
+                best_threshold = t
+                
+            if abs(far - frr) < min_diff:
+                min_diff = abs(far - frr)
+                eer_threshold = t
+                
+        print("-" * 75)
+        print(f"Optimal Threshold (Highest Accuracy): {best_threshold:.2f}")
+        print(f"Equal Error Rate (EER) Threshold: {eer_threshold:.2f} (Recommended)")
+        print("\nNote: Update 'default_threshold' in recognizer.py once calibrated.")
+
+if __name__ == "__main__":
+    import argparse
+    from .database import FaceDatabase
+
+    parser = argparse.ArgumentParser(description="Evaluate Face Recognition System")
+    parser.add_argument("--test_dir", type=str, default="data/test", help="Path to test directory")
+    parser.add_argument("--sweep", action="store_true", help="Run a threshold sweep to find the optimal threshold")
+    args = parser.parse_args()
+
+    print("Initializing models (this may take a moment)...")
+    detector = FaceDetector(device='cpu')
+    embedder = FaceEmbedder(device='cpu')
+    db = FaceDatabase()
+    recognizer = FaceRecognizer(database=db)
+    
+    evaluator = FaceEvaluator(detector, embedder, recognizer)
+    
+    if args.sweep:
+        evaluator.find_optimal_threshold(args.test_dir)
+    else:
+        print(f"\nRunning evaluation with default threshold: {recognizer.default_threshold}")
+        metrics = evaluator.evaluate_directory(args.test_dir)
+        if 'error' in metrics:
+            print(metrics['error'])
+        else:
+            print(f"Total Tested: {metrics['total_tested']}")
+            print(f"Overall Accuracy: {metrics['overall_accuracy']:.2%}")
+            print(f"False Acceptance Rate (FAR): {metrics['false_acceptance_rate']:.2%}")
+            print(f"False Rejection Rate (FRR): {metrics['false_rejection_rate']:.2%}")
+
+    def find_optimal_threshold(self, test_dir: str, start: float = 0.50, end: float = 0.90, step: float = 0.05):
+        """Sweeps thresholds and prints FAR/FRR to help find the Equal Error Rate (EER)."""
+        print(f"\n--- THRESHOLD SWEEP (Calibration) ---")
+        print(f"Testing thresholds from {start:.2f} to {end:.2f}...\n")
+        print(f"{'Threshold':<12} | {'FAR (False Accepts)':<22} | {'FRR (False Rejects)':<22} | {'Accuracy'}")
+        print("-" * 75)
+        
+        best_threshold = start
+        best_accuracy = 0
+        min_diff = 1.0 # For EER
+        eer_threshold = start
+        
+        # Generate thresholds safely to avoid floating point issues
+        thresholds = np.arange(start, end + (step/2), step)
+        
+        for t in thresholds:
+            metrics = self.evaluate_directory(test_dir, threshold=float(t))
+            if 'error' in metrics:
+                print("Error:", metrics['error'])
+                return
+                
+            far = metrics['false_acceptance_rate']
+            frr = metrics['false_rejection_rate']
+            acc = metrics['overall_accuracy']
+            
+            print(f"{t:<12.2f} | {far:<22.2%} | {frr:<22.2%} | {acc:.2%}")
+            
+            if acc > best_accuracy:
+                best_accuracy = acc
+                best_threshold = t
+                
+            if abs(far - frr) < min_diff:
+                min_diff = abs(far - frr)
+                eer_threshold = t
+                
+        print("-" * 75)
+        print(f"Optimal Threshold (Highest Accuracy): {best_threshold:.2f}")
+        print(f"Equal Error Rate (EER) Threshold: {eer_threshold:.2f} (Recommended)")
+        print("\nNote: Update 'default_threshold' in recognizer.py once calibrated.")
+
+if __name__ == "__main__":
+    import argparse
+    from .database import FaceDatabase
+
+    parser = argparse.ArgumentParser(description="Evaluate Face Recognition System")
+    parser.add_argument("--test_dir", type=str, default="data/test", help="Path to test directory")
+    parser.add_argument("--sweep", action="store_true", help="Run a threshold sweep to find the optimal threshold")
+    args = parser.parse_args()
+
+    print("Initializing models (this may take a moment)...")
+    detector = FaceDetector(device='cpu')
+    embedder = FaceEmbedder(device='cpu')
+    db = FaceDatabase()
+    recognizer = FaceRecognizer(database=db)
+    
+    evaluator = FaceEvaluator(detector, embedder, recognizer)
+    
+    if args.sweep:
+        evaluator.find_optimal_threshold(args.test_dir)
+    else:
+        print(f"\nRunning evaluation with default threshold: {recognizer.default_threshold}")
+        metrics = evaluator.evaluate_directory(args.test_dir)
+        if 'error' in metrics:
+            print(metrics['error'])
+        else:
+            print(f"Total Tested: {metrics['total_tested']}")
+            print(f"Overall Accuracy: {metrics['overall_accuracy']:.2%}")
+            print(f"False Acceptance Rate (FAR): {metrics['false_acceptance_rate']:.2%}")
+            print(f"False Rejection Rate (FRR): {metrics['false_rejection_rate']:.2%}")

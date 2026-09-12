@@ -77,3 +77,27 @@ def test_recognizer_identification_and_unknown(tmpdir):
     assert res2['person_id'] == 'UNKNOWN'
     assert res2['name'] == 'UNKNOWN'
     assert res2['similarity'] < 0.6
+
+def test_recognizer_threshold_boundaries(monkeypatch, tmpdir):
+    """Test strict threshold boundaries (0.59 vs 0.61 against 0.60 threshold)"""
+    db_path = str(tmpdir)
+    db = FaceDatabase(db_dir=db_path, db_name='test_db.json')
+    recognizer = FaceRecognizer(database=db, default_threshold=0.60)
+    
+    # Enroll a person
+    known_emb = np.zeros(512)
+    db.enroll_person('p1', 'Known Person', known_emb)
+    
+    # Test 0.59 (Should be UNKNOWN)
+    monkeypatch.setattr(recognizer, '_cosine_similarity', lambda e1, e2: 0.59)
+    res_under = recognizer.identify(known_emb)
+    assert res_under['person_id'] == 'UNKNOWN'
+    assert res_under['name'] == 'UNKNOWN'
+    assert res_under['similarity'] == 0.59
+    
+    # Test 0.61 (Should be MATCH)
+    monkeypatch.setattr(recognizer, '_cosine_similarity', lambda e1, e2: 0.61)
+    res_over = recognizer.identify(known_emb)
+    assert res_over['person_id'] == 'p1'
+    assert res_over['name'] == 'Known Person'
+    assert res_over['similarity'] == 0.61

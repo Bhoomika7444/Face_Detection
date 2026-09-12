@@ -4,6 +4,7 @@ from PIL import Image
 from facenet_pytorch import MTCNN
 import torch
 import warnings
+from .utils import align_and_crop
 
 # Suppress PyTorch warnings for clean output
 warnings.filterwarnings('ignore', category=UserWarning)
@@ -48,28 +49,25 @@ class FaceDetector:
         if boxes is None:
             return []
             
-        # MTCNN can also return the cropped face tensors directly
-        # We use mtcnn again to get the cropped tensors (this is more convenient with facenet-pytorch)
-        face_tensors = self.mtcnn(image)
-        
         faces_data = []
         
-        # Process each detected face
-        if face_tensors is not None:
-            # Handle single face vs multiple face tensors
-            if len(face_tensors.shape) == 3:
-                face_tensors = face_tensors.unsqueeze(0)
+        # Process each detected face strictly using the box and landmarks
+        for i, box in enumerate(boxes):
+            if probs[i] is None or probs[i] < 0.90:
+                continue # Ignore low confidence faces
                 
-            for i, box in enumerate(boxes):
-                if probs[i] is None or probs[i] < 0.90:
-                    continue # Ignore low confidence faces
-                
-                faces_data.append({
-                    'box': box.tolist(),
-                    'prob': float(probs[i]),
-                    'landmarks': landmarks[i].tolist() if landmarks is not None else [],
-                    'face_tensor': face_tensors[i] # 3x160x160 tensor
-                })
+            lm = landmarks[i].tolist() if landmarks is not None else []
+            b = box.tolist()
+            
+            # Use our custom alignment and extraction pipeline
+            face_tensor = align_and_crop(image, b, lm, target_size=(160, 160))
+            
+            faces_data.append({
+                'box': b,
+                'prob': float(probs[i]),
+                'landmarks': lm,
+                'face_tensor': face_tensor # 3x160x160 aligned and pre-whitened tensor
+            })
                 
         return faces_data
         

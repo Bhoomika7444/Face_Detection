@@ -49,25 +49,33 @@ def main():
                 faces = detector.detect_faces(image)
                 
                 if len(faces) == 0:
-                    st.error("No face detected in the image. Please try another image.")
+                    st.error("No face detected. Please upload an image containing a clear face.")
                 elif len(faces) > 1:
-                    st.warning("Multiple faces detected! Please use an image with only one clear face for enrollment.")
+                    st.warning("Multiple faces detected. Please upload an image containing only the person being enrolled.")
                 else:
                     face = faces[0]
                     # Generate embedding
                     embedding = embedder.get_embedding(face['face_tensor'])
                     
-                    # Store in database
-                    db.enroll_person(person_id, person_name, embedding)
-                    st.success(f"Successfully enrolled {person_name} (ID: {person_id})!")
+                    is_new = person_id not in db.get_all_identities()
                     
+                    # Store in database (appends if exists)
+                    db.enroll_person(person_id, person_name, embedding)
+                    
+                    if is_new:
+                        st.success(f"Successfully enrolled {person_name} (ID: {person_id})!")
+                    else:
+                        st.success(f"Successfully added another embedding for {person_name} (ID: {person_id}). Enrolling multiple images improves recognition accuracy!")
+                        
                     # Preview cropped face
                     st.image(detector.crop_face(image, face['box']), caption="Enrolled Face", width=150)
 
     # --- TAB 2: IDENTIFICATION ---
     with tab2:
         st.header("Identify Faces")
-        threshold = st.slider("Similarity Threshold (UNKNOWN Rejection)", min_value=0.0, max_value=1.0, value=0.60, step=0.01)
+        threshold = st.slider("Recognition Threshold", min_value=0.0, max_value=1.0, value=0.70, step=0.01, help="Increase this if distinct people are being falsely accepted.")
+        show_unknown = st.checkbox("Show UNKNOWN Faces (Red Boxes)", value=False, help="Uncheck to only draw boxes around recognized people.")
+        
         recognizer = FaceRecognizer(database=db, default_threshold=threshold)
         
         identify_file = st.file_uploader("Upload Image to Identify", type=['jpg', 'jpeg', 'png'], key="identify")
@@ -77,7 +85,7 @@ def main():
             faces = detector.detect_faces(image)
             
             if len(faces) == 0:
-                st.warning("No face detected.")
+                st.warning("No face detected. Please upload an image containing a clear face.")
                 st.image(image, use_column_width=True)
             else:
                 st.info(f"Detected {len(faces)} face(s).")
@@ -100,17 +108,13 @@ def main():
                         color = (0, 255, 0) # Green for known in RGB
                         label = result['name']
                         
-                    faces_draw_data.append({
-                        'box': face['box'],
-                        'label': label,
-                        'score': result['similarity'],
-                        'color': color # OpenCV uses BGR, but we convert back to PIL below so it doesn't matter if we adapt utils or use RGB here and flip.
-                        # Wait, utils draw_faces expects BGR image and BGR color.
-                        # Red in BGR is (0, 0, 255). Green is (0, 255, 0).
-                    })
-                    
-                    # Fix colors for BGR utils
-                    faces_draw_data[-1]['color'] = (0, 0, 255) if label == "UNKNOWN" else (0, 255, 0)
+                    if label != "UNKNOWN" or show_unknown:
+                        faces_draw_data.append({
+                            'box': face['box'],
+                            'label': label,
+                            'score': result['similarity'],
+                            'color': (0, 0, 255) if label == "UNKNOWN" else (0, 255, 0) # Fix colors for BGR utils
+                        })
                     
                     results_data.append(result)
                 
@@ -123,10 +127,26 @@ def main():
                 
                 st.subheader("Detailed Results")
                 for i, res in enumerate(results_data):
+                    st.markdown(f"**Face {i+1}**")
                     if res['name'] == 'UNKNOWN':
-                        st.error(f"Face {i+1}: UNKNOWN (Max Similarity: {res['similarity']:.2f}, Threshold: {threshold}) - Potential Candidate: {res.get('best_candidate_if_ignored_threshold', 'None')}")
+                        st.error(f"""
+**✕ UNKNOWN**
+
+- **Best Similarity:** {res['similarity']:.2f}
+- **Recognition Threshold:** {threshold:.2f}
+
+No enrolled identity reached the required similarity threshold.
+*(Highest candidate match was {res.get('best_candidate_if_ignored_threshold', 'None')})*
+""")
                     else:
-                        st.success(f"Face {i+1}: {res['name']} (Similarity: {res['similarity']:.2f})")
+                        st.success(f"""
+**✓ CONFIRMED / MATCHED**
+
+- **Person:** {res['name']}
+- **ID:** {res['person_id']}
+- **Cosine Similarity:** {res['similarity']:.2f}
+- **Recognition Threshold:** {threshold:.2f}
+""")
 
     # --- TAB 3: DATABASE MANAGER ---
     with tab3:
