@@ -52,6 +52,8 @@ class FaceDetector:
         faces_data = []
         
         # Process each detected face strictly using the box and landmarks
+        img_cv2 = np.array(image.convert('RGB')) # Convert only once!
+        
         for i, box in enumerate(boxes):
             if probs[i] is None or probs[i] < 0.90:
                 continue # Ignore low confidence faces
@@ -59,8 +61,8 @@ class FaceDetector:
             lm = landmarks[i].tolist() if landmarks is not None else []
             b = box.tolist()
             
-            # Use our custom alignment and extraction pipeline
-            face_tensor = align_and_crop(image, b, lm, target_size=(160, 160))
+            # Use our custom alignment and extraction pipeline (optimized)
+            face_tensor = align_and_crop(img_cv2, b, lm, target_size=(160, 160))
             
             faces_data.append({
                 'box': b,

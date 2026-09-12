@@ -47,13 +47,14 @@ def draw_faces(image_cv2: np.ndarray, faces_data: list) -> np.ndarray:
             
     return img_copy
 
-def align_and_crop(image: Image.Image, box: list, landmarks: list, target_size=(160, 160)) -> torch.Tensor:
+def align_and_crop(img_cv2: np.ndarray, box: list, landmarks: list, target_size=(160, 160)) -> torch.Tensor:
     """
     Performs affine alignment using MTCNN landmarks, crops the face, and 
     returns a pre-whitened PyTorch tensor (C, H, W) for FaceNet.
+    Accepts img_cv2 directly to avoid redundant conversions.
     """
-    img_cv2 = np.array(image.convert('RGB'))
     x1, y1, x2, y2 = [int(v) for v in box]
+    h_img, w_img = img_cv2.shape[:2]
     
     if len(landmarks) >= 5:
         left_eye = landmarks[0]
@@ -64,19 +65,36 @@ def align_and_crop(image: Image.Image, box: list, landmarks: list, target_size=(
         dx = right_eye[0] - left_eye[0]
         angle = np.degrees(np.arctan2(dy, dx))
         
-        # Rotate around the center between the eyes
+        # Calculate padded crop area to avoid rotating the entire full-res image
+        bw, bh = x2 - x1, y2 - y1
+        pad_x, pad_y = int(bw * 0.5), int(bh * 0.5)
+        
+        px1, py1 = max(0, x1 - pad_x), max(0, y1 - pad_y)
+        px2, py2 = min(w_img, x2 + pad_x), min(h_img, y2 + pad_y)
+        
+        patch = img_cv2[py1:py2, px1:px2]
+        
+        # Adjust landmarks to patch coordinates
+        patch_left_eye = (left_eye[0] - px1, left_eye[1] - py1)
+        patch_right_eye = (right_eye[0] - px1, right_eye[1] - py1)
+        
+        # Rotate around the center between the eyes inside the patch
         eye_center = (
-            int((left_eye[0] + right_eye[0]) // 2),
-            int((left_eye[1] + right_eye[1]) // 2)
+            int((patch_left_eye[0] + patch_right_eye[0]) // 2),
+            int((patch_left_eye[1] + patch_right_eye[1]) // 2)
         )
         
         M = cv2.getRotationMatrix2D(eye_center, angle, scale=1.0)
-        h, w = img_cv2.shape[:2]
-        aligned_img = cv2.warpAffine(img_cv2, M, (w, h), flags=cv2.INTER_CUBIC)
+        ph, pw = patch.shape[:2]
+        aligned_patch = cv2.warpAffine(patch, M, (pw, ph), flags=cv2.INTER_LINEAR) # Linear is much faster than CUBIC
         
-        # Transform the bounding box coordinates
+        # Transform the bounding box coordinates relative to the patch
+        patch_x1, patch_y1 = x1 - px1, y1 - py1
+        patch_x2, patch_y2 = x2 - px1, y2 - py1
+        
         box_pts = np.array([
-            [x1, y1], [x2, y1], [x2, y2], [x1, y2]
+            [patch_x1, patch_y1], [patch_x2, patch_y1], 
+            [patch_x2, patch_y2], [patch_x1, patch_y2]
         ])
         ones = np.ones(shape=(len(box_pts), 1))
         points_ones = np.hstack([box_pts, ones])
@@ -89,9 +107,11 @@ def align_and_crop(image: Image.Image, box: list, landmarks: list, target_size=(
         new_x2, new_y2 = int(np.max(x_coords)), int(np.max(y_coords))
         
         new_x1, new_y1 = max(0, new_x1), max(0, new_y1)
-        new_x2, new_y2 = min(w, new_x2), min(h, new_y2)
+        new_x2, new_y2 = min(pw, new_x2), min(ph, new_y2)
         
-        cropped_img = aligned_img[new_y1:new_y2, new_x1:new_x2]
+        cropped_img = aligned_patch[new_y1:new_y2, new_x1:new_x2]
+        
+
     else:
         # Fallback to standard crop if landmarks missing
         x1, y1 = max(0, x1), max(0, y1)
