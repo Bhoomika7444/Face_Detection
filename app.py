@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 
 import pandas as pd
 import streamlit as st
@@ -18,10 +19,13 @@ from src.detector import FaceDetectionError, FaceDetector, ModelInitError  # noq
 from src.embedder import EmbeddingError, FaceEmbedder  # noqa: E402
 from src.pipeline import EnrollmentError, FaceRecognitionSystem, MultipleFacesError, NoFaceError  # noqa: E402
 from src.recognizer import RECOGNIZED, UNCERTAIN, UNKNOWN  # noqa: E402
-from src.utils import ImageLoadError, cv2_to_pil, draw_faces, load_image, pil_to_cv2  # noqa: E402
+from src.utils import (ImageLoadError, cv2_to_pil, draw_faces, face_tensor_to_uint8, load_image,  # noqa: E402
+                       pil_to_cv2)
 from src.verification import VerificationSession  # noqa: E402
 
 BOX_COLORS_BGR = {RECOGNIZED: (0, 170, 0), UNCERTAIN: (0, 165, 255), UNKNOWN: (0, 0, 220)}
+BADGE_COLORS = {RECOGNIZED: "green", UNCERTAIN: "orange", UNKNOWN: "red"}
+HEADLINES = {RECOGNIZED: None, UNCERTAIN: "Borderline match", UNKNOWN: "Not recognized"}
 PIPELINE_ERRORS = (ImageLoadError, FaceDetectionError, EmbeddingError)
 
 
@@ -36,7 +40,7 @@ def load_database() -> FaceDatabase:
 
 
 # ----------------------------------------------------------------------------- sidebar
-def sidebar_settings(db: FaceDatabase) -> tuple[float, float, int]:
+def sidebar_settings() -> tuple[float, float, int]:
     st.sidebar.header("Decision settings")
     if st.sidebar.button("Reset to calibrated defaults"):
         for k in ("accept", "uncertain", "max_attempts"):
@@ -58,8 +62,6 @@ def sidebar_settings(db: FaceDatabase) -> tuple[float, float, int]:
         "(chosen on LFW validation data; see the Evaluation tab). The **similarity score** is the cosine "
         "similarity between face embeddings. It is *not* a probability or a calibrated confidence.")
     st.sidebar.divider()
-    st.sidebar.metric("Enrolled people", db.num_identities)
-    st.sidebar.metric("Stored reference embeddings", db.num_embeddings)
     st.sidebar.caption(f"Model: {config.EMBEDDING_MODEL_NAME} ({config.EMBEDDING_DIM}-D) with MTCNN detection. "
                        "Everything runs locally; no photos are stored, only embeddings.")
     return accept, uncertain, max_attempts
@@ -106,11 +108,16 @@ def enroll_tab(system: FaceRecognitionSystem, accept: float, uncertain: float) -
         st.error("Nothing was enrolled: none of the photos passed the checks below.")
     for w in report.warnings:
         st.warning(w)
-    for outcome in report.outcomes:
-        c1, c2 = st.columns([1, 6])
-        if outcome.face_crop is not None:
-            c1.image(outcome.face_crop, caption="model input", width=96)
-        (c2.success if outcome.accepted else c2.error)(f"**{outcome.label}**: {outcome.message}")
+    st.caption("Per-photo checks. The picture is the aligned face crop the model actually used.")
+    for start in range(0, len(report.outcomes), 4):
+        for col, outcome in zip(st.columns(4), report.outcomes[start:start + 4]):
+            with col, st.container(border=True):
+                if outcome.face_crop is not None:
+                    st.image(outcome.face_crop, width="stretch")
+                st.badge("Accepted" if outcome.accepted else "Rejected",
+                         color="green" if outcome.accepted else "red")
+                st.markdown(f"**{outcome.label}**")
+                st.caption(outcome.message)
 
 
 # ----------------------------------------------------------------------------- identify
@@ -120,9 +127,28 @@ def reset_identification() -> None:
 
 
 def annotated(image, results):
-    faces = [{"box": r.face.box, "color": BOX_COLORS_BGR[r.match.decision],
-              "label": f"{r.index}: {r.match.identity_label} {r.match.similarity:.2f}"} for r in results]
+    """Colour-coded boxes with a large face number sized to each face; details are in the cards."""
+    faces = [{"box": r.face.box, "color": BOX_COLORS_BGR[r.match.decision], "label": str(r.index),
+              "font_scale": max(0.6, (r.face.box[3] - r.face.box[1]) / 70)} for r in results]
     return cv2_to_pil(draw_faces(pil_to_cv2(image), faces))
+
+
+def face_card(r) -> None:
+    """One compact result card: the crop the model saw, the decision, and the score vs. the threshold."""
+    m = r.match
+    with st.container(border=True):
+        st.image(face_tensor_to_uint8(r.face.face_tensor), width=120)
+        st.markdown(f"**Face {r.index}** &nbsp; :{BADGE_COLORS[m.decision]}-badge[{m.decision}]")
+        st.markdown(f"**{HEADLINES[m.decision] or m.candidate_name}**")
+        if math.isnan(m.similarity):
+            st.caption("Nobody is enrolled, so there is nothing to compare with.")
+        else:
+            st.progress(min(max(m.similarity, 0.0), 1.0),
+                        text=f"Similarity **{m.similarity:.3f}** · accept ≥ {m.accept_threshold:.2f}")
+            if m.decision != RECOGNIZED:
+                st.caption(f"Closest enrolled person: {m.candidate_name} (not accepted)")
+        for w in r.warnings:
+            st.caption(f"⚠ {w}")
 
 
 def results_table(results) -> pd.DataFrame:
@@ -191,19 +217,26 @@ def identify_tab(system: FaceRecognitionSystem, accept: float, uncertain: float,
     if st.session_state.id_thresholds != (accept, uncertain):
         st.info("Thresholds changed since this photo was identified. Press **Identify** again to apply them.")
 
-    c1, c2 = st.columns([3, 2])
-    c1.image(annotated(image, results), caption=f"{len(results)} face(s) detected "
-             "(green = RECOGNIZED, orange = UNCERTAIN, red = UNKNOWN)", width="stretch")
-    with c2:
+    counts = {d: sum(r.match.decision == d for r in results) for d in (RECOGNIZED, UNCERTAIN, UNKNOWN)}
+    c = st.columns(4)
+    c[0].metric("Faces detected", len(results), border=True)
+    c[1].metric("Recognized", counts[RECOGNIZED], border=True)
+    c[2].metric("Uncertain", counts[UNCERTAIN], border=True)
+    c[3].metric("Unknown", counts[UNKNOWN], border=True)
+
+    st.image(annotated(image, results), width="stretch",
+             caption="Green = RECOGNIZED, orange = UNCERTAIN, red = UNKNOWN. Faces are numbered left to right.")
+
+    st.subheader("Result per face")
+    per_row = 4 if len(results) > 2 else 2
+    for start in range(0, len(results), per_row):
+        for col, r in zip(st.columns(per_row), results[start:start + per_row]):
+            with col:
+                face_card(r)
+    with st.expander("Detailed results table (similarity scores, thresholds, candidates, reasons)"):
+        st.dataframe(results_table(results), hide_index=True, width="stretch")
         for r in results:
-            m = r.match
-            msg = (f"**Face {r.index}: {m.identity_label}**  \nSimilarity score: **{m.similarity:.3f}**  \n"
-                   f"Recognition threshold: {m.accept_threshold:.2f} (uncertain band starts at "
-                   f"{m.uncertain_threshold:.2f})  \n{m.reason}")
-            {RECOGNIZED: st.success, UNCERTAIN: st.warning, UNKNOWN: st.error}[m.decision](msg)
-            for w in r.warnings:
-                st.caption(f"Warning: {w}")
-    st.dataframe(results_table(results), hide_index=True, width="stretch")
+            st.caption(f"Face {r.index}: {r.match.reason}")
 
     uncertain_faces = [r for r in results if r.match.decision == UNCERTAIN]
     if uncertain_faces and "verification" not in st.session_state:
@@ -351,11 +384,48 @@ def evaluation_tab() -> None:
             st.markdown(report.read_text(encoding="utf-8"))
     group = config.RESULTS_DIR / "group_test" / "summary.json"
     if group.exists():
-        with st.expander("Critical group-image false-acceptance test"):
-            st.json(json.loads(group.read_text(encoding="utf-8")))
+        g = json.loads(group.read_text(encoding="utf-8"))
+        st.subheader("Critical group-image false-acceptance test")
+        st.caption(f"{g['trials']} composite group images: 1 enrolled person (A) + 3 people who are not enrolled.")
+        rows = []
+        for name, c in g["scenarios"].items():
+            n = c["trials"]
+            rows.append({"Database": "only A enrolled" if name == "only_A" else "all test-split people enrolled",
+                         "All 4 people detected": f"{c.get('all_4_people_detected', 0)}/{n}",
+                         "Strangers falsely accepted": f"{c.get('stranger_FALSELY_ACCEPTED', 0)}/{3 * n}",
+                         "Strangers UNKNOWN": c.get("stranger_unknown", 0),
+                         "Strangers UNCERTAIN": c.get("stranger_uncertain", 0),
+                         "A recognized as A": f"{c.get('A_recognized_correctly', 0)}/{n}",
+                         "A uncertain / unknown": f"{c.get('A_uncertain', 0)} / {c.get('A_unknown', 0)}",
+                         "A recognized as someone else": c.get("A_recognized_as_wrong_person", 0)})
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
 
 
 # ----------------------------------------------------------------------------- main
+def header_status(db: FaceDatabase, accept: float, uncertain: float, max_attempts: int) -> None:
+    c = st.columns(4)
+    c[0].metric("Enrolled people", db.num_identities, border=True)
+    c[1].metric("Reference embeddings", db.num_embeddings, border=True,
+                help="One stored 512-D embedding per accepted enrollment photo.")
+    c[2].metric("Recognition threshold", f"≥ {accept:.2f}", border=True,
+                help="Cosine similarity needed to be RECOGNIZED. Change it in the sidebar.")
+    c[3].metric("Uncertain band", f"{uncertain:.2f} – {accept:.2f}", border=True,
+                help=f"Borderline scores: ask for another photo, at most {max_attempts} attempts.")
+    with st.expander("How it works"):
+        st.markdown(
+            "**Pipeline:** photo → **MTCNN** face detection → eye alignment and 160×160 crop → **FaceNet** "
+            "(InceptionResnetV1, VGGFace2) 512-D embedding → **cosine similarity** against every enrolled "
+            "embedding → decision on the best match.\n\n"
+            "| Best similarity score | Decision |\n|---|---|\n"
+            f"| ≥ {accept:.2f} | :green-badge[RECOGNIZED] |\n"
+            f"| {uncertain:.2f} – {accept:.2f} | :orange-badge[UNCERTAIN]: upload another photo "
+            f"(max {max_attempts} attempts, then UNABLE TO VERIFY) |\n"
+            f"| < {uncertain:.2f} | :red-badge[UNKNOWN]: not enrolled |\n\n"
+            "The closest enrolled person is only a *candidate*: it is never accepted just for being closest. "
+            "The similarity score is a cosine similarity, not a probability. Thresholds were calibrated on "
+            "LFW validation data (see the Evaluation tab).")
+
+
 def main() -> None:
     st.title("Face Recognition Identification System")
     st.caption("Enroll people, then identify faces with UNKNOWN rejection and bounded re-verification of "
@@ -377,7 +447,8 @@ def main() -> None:
         st.stop()
 
     system = FaceRecognitionSystem(db, detector, embedder)
-    accept, uncertain, max_attempts = sidebar_settings(db)
+    accept, uncertain, max_attempts = sidebar_settings()
+    header_status(db, accept, uncertain, max_attempts)
     tabs = st.tabs(["Enroll Person", "Identify Face", "Enrolled People", "Evaluation"])
     with tabs[0]:
         enroll_tab(system, accept, uncertain)

@@ -77,7 +77,8 @@ def cv2_to_pil(cv2_img: np.ndarray) -> Image.Image:
 
 
 def draw_faces(image_bgr: np.ndarray, faces_data: list[dict]) -> np.ndarray:
-    """Draw boxes and labels. faces_data: [{'box': [x1,y1,x2,y2], 'label': str, 'color': (B,G,R)}]."""
+    """Draw boxes and labels. faces_data: [{'box': [x1,y1,x2,y2], 'label': str, 'color': (B,G,R)}],
+    with an optional 'font_scale' per face (default: based on the image size)."""
     img = image_bgr.copy()
     h_img, w_img = img.shape[:2]
     thickness = max(2, round(min(h_img, w_img) / 300))
@@ -93,12 +94,14 @@ def draw_faces(image_bgr: np.ndarray, faces_data: list[dict]) -> np.ndarray:
         label = str(face.get("label", ""))
         cv2.rectangle(img, (x1, y1), (x2, y2), color, thickness)
         if label:
-            (tw, th), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, 1)
+            fs = face.get("font_scale", font_scale)
+            text_thickness = max(1, round(fs * 1.5))
+            (tw, th), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, fs, text_thickness)
             # Label above the box, or inside it when the face touches the top edge of the image.
             ty = y1 - 4 if y1 - th - baseline - 4 >= 0 else y1 + th + 4
             cv2.rectangle(img, (x1, ty - th - 4), (x1 + tw + 4, ty + baseline), color, -1)
-            cv2.putText(img, label, (x1 + 2, ty), cv2.FONT_HERSHEY_SIMPLEX, font_scale,
-                        (255, 255, 255), 1, cv2.LINE_AA)
+            cv2.putText(img, label, (x1 + 2, ty), cv2.FONT_HERSHEY_SIMPLEX, fs,
+                        (255, 255, 255), text_thickness, cv2.LINE_AA)
     return img
 
 

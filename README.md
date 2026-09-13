@@ -8,6 +8,24 @@ evaluation on real data. It is free, open-source, and runs locally on a CPU.
 > Built for the Code Nimbus Solutions AI/ML internship assignment.
 > **Cost: ₹0 / $0.** No paid APIs, no cloud services, no credit card.
 
+### Assignment requirements: where each one is
+
+| Requirement (from the assignment email) | Status | Where |
+|---|---|---|
+| Enroll individuals | Done | Enroll tab · `FaceRecognitionSystem.enroll` in `src/pipeline.py` · [section 9](#9-enrollment) |
+| Identify new faces by matching against the enrolled database | Done | Identify tab · `src/recognizer.py` · [section 10](#10-identification) |
+| Face detection | Done | MTCNN, `src/detector.py` · [section 7](#7-face-detection) |
+| Face embeddings | Done | FaceNet 512-D, `src/embedder.py` · [section 8](#8-face-embeddings) |
+| Similarity-based matching | Done | cosine similarity, `src/recognizer.py` · [section 11](#11-cosine-similarity) |
+| "Unknown" rejection mechanism | Done | threshold + UNKNOWN (plus a bounded UNCERTAIN re-verification) · [sections 13–15](#13-unknown-rejection) |
+| Basic evaluation results | Done, measured | `results/` · [section 18](#18-actual-evaluation-results) |
+| README: model used | Done | [sections 5–6](#5-model) |
+| README: matching threshold | Done | 0.71 accept / 0.61 uncertain, calibrated on data · [sections 12 and 16](#12-recognition-threshold) |
+| README: failure cases | Done | observed and potential · [section 19](#19-failure-cases) |
+| README: improvements | Done | [section 21](#21-improvements) |
+| ₹0 / $0 spend | Done | [section 26](#26-zero-cost-approach) |
+| Public GitHub repository | Done | this repository |
+
 ---
 
 ## 1. Overview
@@ -37,7 +55,7 @@ IDENTIFICATION  photo    -> detect -> align/crop -> FaceNet -> 512-D embedding -
 - Thresholds **calibrated on data** (LFW validation split) and **reported on different people** (LFW test split)
 - Persistent JSON database with atomic writes, validation, model/version checks, and corrupt-file protection
 - Streamlit UI: Enroll · Identify (with re-verification) · Enrolled People · Evaluation
-- 81 automated tests (71 unit + 10 integration with the real models)
+- 85 automated tests (71 unit, 10 integration with the real models, 4 UI tests)
 
 ## 3. Architecture
 
@@ -371,7 +389,8 @@ streamlit run app.py
 ```
 
 1. **Enroll Person**: ID + name + 1–10 photos (3+ recommended) + consent → *Enroll*.
-2. **Identify Face**: upload a photo → *Identify*. For a single borderline face, re-verification starts automatically; for a
+2. **Identify Face**: upload a photo → *Identify*. You get a summary (faces / recognized / uncertain / unknown), the
+   photo with colour-coded numbered boxes, and one card per face (face crop, decision, similarity vs. threshold). For a single borderline face, re-verification starts automatically; for a
    group photo, choose the UNCERTAIN face to re-verify.
 3. **Enrolled People**: list or remove identities.
 4. **Evaluation**: measured LFW results (only shown if the result files exist).
@@ -420,7 +439,8 @@ Face_Detection/
 │   └── lfw_pairs_benchmark.py      standard LFW verification benchmark
 ├── tests/
 │   ├── test_core.py                71 unit tests (no models needed)
-│   └── test_integration.py         10 tests with the real models on LFW
+│   ├── test_integration.py         10 tests with the real models on LFW
+│   └── test_app.py                 4 UI tests (headless Streamlit, temporary database)
 ├── data/README.md                  dataset layout (photos are never committed)
 ├── embeddings/.gitkeep             database.json is created here at runtime (git-ignored)
 └── results/                        measured evaluation outputs (summaries and plots only)
@@ -439,11 +459,14 @@ pytest -m integration           # real MTCNN + FaceNet on real LFW photos
   IDs, the re-verification state machine (recognized, unknown, 3× uncertain → UNABLE TO VERIFY, no attempts after completion,
   configurable maximum, reset), image validation (corrupt, truncated, GIF/TIFF, tiny, EXIF rotation, grayscale/RGBA,
   downscaling), border padding, and enrollment/identification orchestration with stub models.
+- **UI tests (4):** the Streamlit app is run headlessly (`streamlit.testing`) on a temporary database: all tabs render
+  without errors, an invalid threshold combination is handled, the Evaluation tab shows the measured numbers, and removing
+  a person works.
 - **Integration tests (10):** single/no/multiple face detection, embedding shape/norm/determinism/batching, same-person >
   different-person, end-to-end enroll → recognize → UNKNOWN, duplicate/multi-face/wrong-person enrollment, persistence
   across restarts, the group-image false-acceptance check, and re-verification with real scores.
 
-Last run: **81 passed** (in the development environment and in a fresh virtual environment built from `requirements.txt`).
+Last run: **85 passed** (in the development environment and in a fresh virtual environment built from `requirements.txt`).
 
 ## 26. Zero-cost approach
 

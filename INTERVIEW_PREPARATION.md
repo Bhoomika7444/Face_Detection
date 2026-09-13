@@ -11,7 +11,7 @@ Everything here matches the code and the **measured** results in `results/`. Num
 | Old threshold 0.60 would have accepted | **7.5%** of unknown people (test) | `results/lfw_test/threshold_sweep.csv` |
 | Group test: strangers falsely accepted | **0 of 300** (both scenarios) | `results/group_test/summary.json` |
 | LFW standard benchmark (1:1 verification) | **99.30% ± 0.32%** (published: 99.65%) | `results/lfw_pairs/summary.json` |
-| Tests | 81 passing (71 unit + 10 integration) | `pytest` |
+| Tests | 85 passing (71 unit + 10 integration + 4 UI) | `pytest` |
 
 ---
 
