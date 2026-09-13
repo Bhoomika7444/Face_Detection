@@ -1,0 +1,302 @@
+{
+  "dataset": "data/lfw_eval/val",
+  "generated_at": "2026-09-13 12:14",
+  "pipeline": "facenet-pytorch/InceptionResnetV1/vggface2|det0.9|max1600|mtcnn20(0.6, 0.7, 0.7)|align-v2-zeropad|central-face",
+  "threshold_source": "calibrated on this dataset: {'target_far': 0.01, 'target_known_reject': 0.02, 'max_attempts': 3}",
+  "max_attempts": 3,
+  "gallery": {
+    "images": 456,
+    "stored": 445,
+    "no_face": 0,
+    "rejected_quality": 11,
+    "identities_without_references": 0,
+    "identities_enrolled": 152
+  },
+  "operating_point": {
+    "accept_threshold": 0.71,
+    "uncertain_threshold": 0.61,
+    "known": {
+      "count": 443,
+      "correctly_recognized": 0.9051918735891648,
+      "misidentified_as_other_person": 0.0,
+      "uncertain": 0.07900677200902935,
+      "rejected_as_unknown": 0.01580135440180587
+    },
+    "unknown": {
+      "count": 1612,
+      "correctly_rejected_unknown": 0.9367245657568238,
+      "uncertain": 0.05707196029776675,
+      "falsely_accepted": 0.00620347394540943
+    },
+    "two_state": {
+      "FAR_unknown_accepted": 0.00620347394540943,
+      "FRR_known_not_correctly_accepted": 0.09480812641083525,
+      "misidentification_rate": 0.0
+    }
+  },
+  "equal_error_rate": {
+    "threshold": 0.64,
+    "FAR": 0.03163771712158809,
+    "FRR": 0.02934537246049662
+  },
+  "sessions": {
+    "known": {
+      "sessions": 331,
+      "after_reverification": {
+        "correctly_recognized": 0.9667673716012085,
+        "rejected_as_unknown": 0.021148036253776436,
+        "unable_to_verify": 0.012084592145015106
+      },
+      "first_attempt_only": {
+        "correctly_recognized": 0.8912386706948641,
+        "rejected_as_unknown": 0.01812688821752266,
+        "uncertain": 0.09063444108761329
+      },
+      "attempts_used_histogram": {
+        "1": 301,
+        "2": 21,
+        "3": 9
+      }
+    },
+    "unknown": {
+      "sessions": 612,
+      "after_reverification": {
+        "falsely_accepted": 0.004901960784313725,
+        "rejected_as_unknown": 0.9787581699346405,
+        "unable_to_verify": 0.016339869281045753
+      },
+      "first_attempt_only": {
+        "falsely_accepted": 0.0016339869281045752,
+        "rejected_as_unknown": 0.9428104575163399,
+        "uncertain": 0.05555555555555555
+      },
+      "attempts_used_histogram": {
+        "1": 578,
+        "2": 20,
+        "3": 14
+      }
+    }
+  },
+  "score_statistics": {
+    "known_best_correct": {
+      "mean": 0.8200946011964012,
+      "p05": 0.6618129044771195
+    },
+    "unknown_best": {
+      "mean": 0.48948091810231764,
+      "p95": 0.6225276052951813,
+      "p99": 0.6956598234176634,
+      "max": 0.8107820153236389
+    }
+  },
+  "detection_failures": {
+    "known_no_face": [],
+    "unknown_no_face": [],
+    "known_unenrollable": []
+  },
+  "failure_cases": {
+    "enrolled_people_lowest_scores": [
+      {
+        "image": "test/known/Paula_Radcliffe/Paula_Radcliffe_0006.jpg",
+        "true_id": "Paula_Radcliffe",
+        "decision": "UNKNOWN",
+        "best_match": "Paula_Radcliffe",
+        "best_similarity": 0.4932,
+        "correct_identity_similarity": 0.4932
+      },
+      {
+        "image": "test/known/Alvaro_Uribe/Alvaro_Uribe_0002.jpg",
+        "true_id": "Alvaro_Uribe",
+        "decision": "UNKNOWN",
+        "best_match": "Alvaro_Uribe",
+        "best_similarity": 0.5847,
+        "correct_identity_similarity": 0.5847
+      },
+      {
+        "image": "test/known/Naomi_Watts/Naomi_Watts_0022.jpg",
+        "true_id": "Naomi_Watts",
+        "decision": "UNKNOWN",
+        "best_match": "Naomi_Watts",
+        "best_similarity": 0.5868,
+        "correct_identity_similarity": 0.5868
+      },
+      {
+        "image": "test/known/Mahmoud_Abbas/Mahmoud_Abbas_0012.jpg",
+        "true_id": "Mahmoud_Abbas",
+        "decision": "UNKNOWN",
+        "best_match": "Mohamed_ElBaradei",
+        "best_similarity": 0.5908,
+        "correct_identity_similarity": 0.2931
+      },
+      {
+        "image": "test/known/Bill_Frist/Bill_Frist_0004.jpg",
+        "true_id": "Bill_Frist",
+        "decision": "UNKNOWN",
+        "best_match": "Bill_Frist",
+        "best_similarity": 0.5953,
+        "correct_identity_similarity": 0.5953
+      },
+      {
+        "image": "test/known/Alvaro_Silva_Calderon/Alvaro_Silva_Calderon_0002.jpg",
+        "true_id": "Alvaro_Silva_Calderon",
+        "decision": "UNKNOWN",
+        "best_match": "Alvaro_Silva_Calderon",
+        "best_similarity": 0.5957,
+        "correct_identity_similarity": 0.5957
+      },
+      {
+        "image": "test/known/Juan_Pablo_Montoya/Juan_Pablo_Montoya_0005.jpg",
+        "true_id": "Juan_Pablo_Montoya",
+        "decision": "UNKNOWN",
+        "best_match": "Juan_Pablo_Montoya",
+        "best_similarity": 0.6098,
+        "correct_identity_similarity": 0.6098
+      },
+      {
+        "image": "test/known/Colin_Montgomerie/Colin_Montgomerie_0004.jpg",
+        "true_id": "Colin_Montgomerie",
+        "decision": "UNCERTAIN",
+        "best_match": "Colin_Montgomerie",
+        "best_similarity": 0.614,
+        "correct_identity_similarity": 0.614
+      },
+      {
+        "image": "test/known/Fernando_Henrique_Cardoso/Fernando_Henrique_Cardoso_0002.jpg",
+        "true_id": "Fernando_Henrique_Cardoso",
+        "decision": "UNCERTAIN",
+        "best_match": "Fernando_Henrique_Cardoso",
+        "best_similarity": 0.6142,
+        "correct_identity_similarity": 0.6142
+      },
+      {
+        "image": "test/known/James_Blake/James_Blake_0009.jpg",
+        "true_id": "James_Blake",
+        "decision": "UNCERTAIN",
+        "best_match": "James_Blake",
+        "best_similarity": 0.615,
+        "correct_identity_similarity": 0.615
+      }
+    ],
+    "enrolled_people_misidentified": [],
+    "unknown_people_highest_scores": [
+      {
+        "image": "test/unknown/Wang_Nan/Wang_Nan_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Nan_Wang",
+        "best_similarity": 0.8108,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Shi_Guangsheng/Shi_Guangsheng_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Li_Zhaoxing",
+        "best_similarity": 0.7967,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Terunobu_Maeda/Terunobu_Maeda_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Chen_Shui-bian",
+        "best_similarity": 0.7886,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Enrique_Bolanos/Enrique_Bolanos_0002.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Bernard_Law",
+        "best_similarity": 0.7748,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Lee_Hong-ki/Lee_Hong-ki_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Win_Aung",
+        "best_similarity": 0.7683,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Eric_Shinseki/Eric_Shinseki_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Thaksin_Shinawatra",
+        "best_similarity": 0.7468,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Taku_Yamasaki/Taku_Yamasaki_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Naoto_Kan",
+        "best_similarity": 0.7352,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Keizo_Yamada/Keizo_Yamada_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Tung_Chee-hwa",
+        "best_similarity": 0.7174,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Idi_Amin/Idi_Amin_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Kofi_Annan",
+        "best_similarity": 0.7152,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Chen_Kaige/Chen_Kaige_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Li_Zhaoxing",
+        "best_similarity": 0.7124,
+        "correct_identity_similarity": null
+      }
+    ]
+  },
+  "calibration": {
+    "accept_threshold": 0.71,
+    "uncertain_threshold": 0.61,
+    "rule": {
+      "target_far": 0.01,
+      "target_known_reject": 0.02,
+      "max_attempts": 3
+    },
+    "at_accept": {
+      "threshold": 0.71,
+      "FAR": 0.00620347394540943,
+      "FRR": 0.09480812641083525,
+      "misID": 0.0,
+      "known_below": 0.09480812641083522
+    },
+    "at_uncertain": {
+      "threshold": 0.61,
+      "FAR": 0.06327543424317618,
+      "FRR": 0.015801354401805856,
+      "misID": 0.0,
+      "known_below": 0.01580135440180587
+    },
+    "session_far": 0.004901960784313725,
+    "session_misid": 0.0,
+    "rejected_candidates": [
+      {
+        "accept": 0.7,
+        "uncertain": 0.61,
+        "session_far": 0.0163,
+        "reason": "FAR after re-verification above target"
+      }
+    ]
+  },
+  "runtime_seconds": 77.0,
+  "plots": [
+    "score_distributions.png",
+    "error_rates_vs_threshold.png"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "benchmark": "LFW verification, official 10-fold pairs.txt (6,000 pairs)",
+  "pairs": 6000,
+  "pairs_with_undetected_face": 1,
+  "accuracy_mean": 0.993,
+  "accuracy_std": 0.003231786571610892,
+  "fold_thresholds": [
+    0.3900000000000005,
+    0.4050000000000005,
+    0.3900000000000005,
+    0.3900000000000005,
+    0.3900000000000005,
+    0.3900000000000005,
+    0.41000000000000053,
+    0.3900000000000005,
+    0.3900000000000005,
+    0.3900000000000005
+  ],
+  "auc": 0.9990576666666666,
+  "tar_at_far_1e-2": 0.9963333333333333,
+  "tar_at_far_1e-3": 0.9776666666666667,
+  "same_person_mean_similarity": 0.7632486877056459,
+  "different_person_mean_similarity": 0.019693865613391003,
+  "reference": "facenet-pytorch README reports 0.9965 for this model"
+}

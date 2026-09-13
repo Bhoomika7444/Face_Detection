@@ -1,12 +1,26 @@
+# Python / tooling
 __pycache__/
-*.pyc
-venv/
-.env
+*.py[cod]
 .pytest_cache/
-embeddings/database.json
-embeddings/*.npy
-data/enrolled/*
-data/test/*
-!data/enrolled/.gitkeep
-!data/test/.gitkeep
-results/*
+venv/
+.venv/
+env/
+.env
+.streamlit/secrets.toml
+.DS_Store
+Thumbs.db
+
+# Biometric data: never commit face photos or face embeddings
+data/*
+!data/README.md
+embeddings/*
+!embeddings/.gitkeep
+*.corrupt-*.json
+
+# Generated evaluation artefacts: summaries and plots are committed; caches and face images are not
+results/cache/
+results/group_test/examples/
+results/group_test/trials.json
+
+# Local editor/agent tooling
+.claude/

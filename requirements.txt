@@ -1,9 +1,14 @@
-opencv-python
-numpy
-Pillow
-torch
-torchvision
-facenet-pytorch
-streamlit
-scikit-learn
-pytest
+# Tested on Python 3.10 (Windows 11, CPU only). Use Python 3.9-3.12:
+# facenet-pytorch 2.6.0 pins torch 2.2.x, numpy<2 and Pillow 10.2.x, and torch 2.2 has no
+# wheels for Python 3.13+.
+facenet-pytorch==2.6.0
+torch==2.2.2
+torchvision==0.17.2
+numpy==1.26.4
+Pillow==10.2.0
+# opencv 4.12+ / 5.x require numpy>=2, which conflicts with facenet-pytorch. Headless = no GUI libs needed.
+opencv-python-headless==4.11.0.86
+streamlit==1.56.0
+pandas>=2.0,<3
+matplotlib>=3.7,<3.11
+pytest>=7.0

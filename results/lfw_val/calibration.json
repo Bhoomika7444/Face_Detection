@@ -1,0 +1,33 @@
+{
+  "accept_threshold": 0.71,
+  "uncertain_threshold": 0.61,
+  "rule": {
+    "target_far": 0.01,
+    "target_known_reject": 0.02,
+    "max_attempts": 3
+  },
+  "at_accept": {
+    "threshold": 0.71,
+    "FAR": 0.00620347394540943,
+    "FRR": 0.09480812641083525,
+    "misID": 0.0,
+    "known_below": 0.09480812641083522
+  },
+  "at_uncertain": {
+    "threshold": 0.61,
+    "FAR": 0.06327543424317618,
+    "FRR": 0.015801354401805856,
+    "misID": 0.0,
+    "known_below": 0.01580135440180587
+  },
+  "session_far": 0.004901960784313725,
+  "session_misid": 0.0,
+  "rejected_candidates": [
+    {
+      "accept": 0.7,
+      "uncertain": 0.61,
+      "session_far": 0.0163,
+      "reason": "FAR after re-verification above target"
+    }
+  ]
+}

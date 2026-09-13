@@ -1,0 +1,281 @@
+{
+  "dataset": "data/lfw_eval/test",
+  "generated_at": "2026-09-13 12:15",
+  "pipeline": "facenet-pytorch/InceptionResnetV1/vggface2|det0.9|max1600|mtcnn20(0.6, 0.7, 0.7)|align-v2-zeropad|central-face",
+  "threshold_source": "from results/lfw_val/calibration.json (chosen on a different, identity-disjoint split)",
+  "max_attempts": 3,
+  "gallery": {
+    "images": 456,
+    "stored": 445,
+    "no_face": 0,
+    "rejected_quality": 11,
+    "identities_without_references": 0,
+    "identities_enrolled": 152
+  },
+  "operating_point": {
+    "accept_threshold": 0.71,
+    "uncertain_threshold": 0.61,
+    "known": {
+      "count": 469,
+      "correctly_recognized": 0.8955223880597015,
+      "misidentified_as_other_person": 0.0021321961620469083,
+      "uncertain": 0.08528784648187633,
+      "rejected_as_unknown": 0.017057569296375266
+    },
+    "unknown": {
+      "count": 1612,
+      "correctly_rejected_unknown": 0.9379652605459057,
+      "uncertain": 0.057692307692307696,
+      "falsely_accepted": 0.004342431761786601
+    },
+    "two_state": {
+      "FAR_unknown_accepted": 0.004342431761786601,
+      "FRR_known_not_correctly_accepted": 0.10447761194029848,
+      "misidentification_rate": 0.0021321961620469083
+    }
+  },
+  "equal_error_rate": {
+    "threshold": 0.64,
+    "FAR": 0.03163771712158809,
+    "FRR": 0.02985074626865669
+  },
+  "sessions": {
+    "known": {
+      "sessions": 374,
+      "after_reverification": {
+        "correctly_recognized": 0.9732620320855615,
+        "misidentified": 0.00267379679144385,
+        "rejected_as_unknown": 0.016042780748663103,
+        "unable_to_verify": 0.008021390374331552
+      },
+      "first_attempt_only": {
+        "correctly_recognized": 0.8877005347593583,
+        "misidentified": 0.00267379679144385,
+        "rejected_as_unknown": 0.013368983957219251,
+        "uncertain": 0.0962566844919786
+      },
+      "attempts_used_histogram": {
+        "1": 338,
+        "2": 24,
+        "3": 12
+      }
+    },
+    "unknown": {
+      "sessions": 612,
+      "after_reverification": {
+        "falsely_accepted": 0.011437908496732025,
+        "rejected_as_unknown": 0.9787581699346405,
+        "unable_to_verify": 0.00980392156862745
+      },
+      "first_attempt_only": {
+        "falsely_accepted": 0.004901960784313725,
+        "rejected_as_unknown": 0.9330065359477124,
+        "uncertain": 0.06209150326797386
+      },
+      "attempts_used_histogram": {
+        "1": 574,
+        "2": 27,
+        "3": 11
+      }
+    }
+  },
+  "score_statistics": {
+    "known_best_correct": {
+      "mean": 0.8245238691121659,
+      "p05": 0.6835340976715087
+    },
+    "unknown_best": {
+      "mean": 0.4864580993247091,
+      "p95": 0.6249204903841018,
+      "p99": 0.6825410068035125,
+      "max": 0.7688875198364258
+    }
+  },
+  "detection_failures": {
+    "known_no_face": [],
+    "unknown_no_face": [],
+    "known_unenrollable": []
+  },
+  "failure_cases": {
+    "enrolled_people_lowest_scores": [
+      {
+        "image": "test/known/Nicole_Kidman/Nicole_Kidman_0019.jpg",
+        "true_id": "Nicole_Kidman",
+        "decision": "UNKNOWN",
+        "best_match": "Meryl_Streep",
+        "best_similarity": 0.3549,
+        "correct_identity_similarity": 0.2888
+      },
+      {
+        "image": "test/known/Angelina_Jolie/Angelina_Jolie_0005.jpg",
+        "true_id": "Angelina_Jolie",
+        "decision": "UNKNOWN",
+        "best_match": "Angelina_Jolie",
+        "best_similarity": 0.553,
+        "correct_identity_similarity": 0.553
+      },
+      {
+        "image": "test/known/Antonio_Banderas/Antonio_Banderas_0002.jpg",
+        "true_id": "Antonio_Banderas",
+        "decision": "UNKNOWN",
+        "best_match": "Antonio_Banderas",
+        "best_similarity": 0.5584,
+        "correct_identity_similarity": 0.5584
+      },
+      {
+        "image": "test/known/Gil_de_Ferran/Gil_de_Ferran_0002.jpg",
+        "true_id": "Gil_de_Ferran",
+        "decision": "UNKNOWN",
+        "best_match": "Gil_de_Ferran",
+        "best_similarity": 0.5739,
+        "correct_identity_similarity": 0.5739
+      },
+      {
+        "image": "test/known/David_Beckham/David_Beckham_0028.jpg",
+        "true_id": "David_Beckham",
+        "decision": "UNKNOWN",
+        "best_match": "David_Beckham",
+        "best_similarity": 0.5751,
+        "correct_identity_similarity": 0.5751
+      },
+      {
+        "image": "test/known/Fernando_Vargas/Fernando_Vargas_0003.jpg",
+        "true_id": "Fernando_Vargas",
+        "decision": "UNKNOWN",
+        "best_match": "Fernando_Vargas",
+        "best_similarity": 0.5966,
+        "correct_identity_similarity": 0.5966
+      },
+      {
+        "image": "test/known/Norah_Jones/Norah_Jones_0013.jpg",
+        "true_id": "Norah_Jones",
+        "decision": "UNKNOWN",
+        "best_match": "Norah_Jones",
+        "best_similarity": 0.6028,
+        "correct_identity_similarity": 0.6028
+      },
+      {
+        "image": "test/known/Rubens_Barrichello/Rubens_Barrichello_0009.jpg",
+        "true_id": "Rubens_Barrichello",
+        "decision": "UNKNOWN",
+        "best_match": "Rubens_Barrichello",
+        "best_similarity": 0.6052,
+        "correct_identity_similarity": 0.6052
+      },
+      {
+        "image": "test/known/Winona_Ryder/Winona_Ryder_0023.jpg",
+        "true_id": "Winona_Ryder",
+        "decision": "UNCERTAIN",
+        "best_match": "Winona_Ryder",
+        "best_similarity": 0.6151,
+        "correct_identity_similarity": 0.6151
+      },
+      {
+        "image": "test/known/Prince_Charles/Prince_Charles_0005.jpg",
+        "true_id": "Prince_Charles",
+        "decision": "UNCERTAIN",
+        "best_match": "Prince_Charles",
+        "best_similarity": 0.6157,
+        "correct_identity_similarity": 0.6157
+      }
+    ],
+    "enrolled_people_misidentified": [
+      {
+        "image": "test/known/Recep_Tayyip_Erdogan/Recep_Tayyip_Erdogan_0004.jpg",
+        "true_id": "Recep_Tayyip_Erdogan",
+        "decision": "RECOGNIZED",
+        "best_match": "Abdullah_Gul",
+        "best_similarity": 0.8683,
+        "correct_identity_similarity": 0.3074
+      }
+    ],
+    "unknown_people_highest_scores": [
+      {
+        "image": "test/unknown/Kim_Hong-up/Kim_Hong-up_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Zhu_Rongji",
+        "best_similarity": 0.7689,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Suh_Chung-won/Suh_Chung-won_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Zhu_Rongji",
+        "best_similarity": 0.7581,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Hitoshi_Tanaka/Hitoshi_Tanaka_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Zhu_Rongji",
+        "best_similarity": 0.7415,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Hu_Jintao/Hu_Jintao_0003.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Roh_Moo-hyun",
+        "best_similarity": 0.7351,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Kim_Dae-jung/Kim_Dae-jung_0007.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Roh_Moo-hyun",
+        "best_similarity": 0.7137,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Kim_Dae-jung/Kim_Dae-jung_0008.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Roh_Moo-hyun",
+        "best_similarity": 0.7113,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Patrick_Bourrat/Patrick_Bourrat_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "RECOGNIZED",
+        "best_match": "Jan_Ullrich",
+        "best_similarity": 0.7107,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Hu_Jintao/Hu_Jintao_0004.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "UNCERTAIN",
+        "best_match": "Antony_Leung",
+        "best_similarity": 0.7097,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Kim_Dae-jung/Kim_Dae-jung_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "UNCERTAIN",
+        "best_match": "Roh_Moo-hyun",
+        "best_similarity": 0.706,
+        "correct_identity_similarity": null
+      },
+      {
+        "image": "test/unknown/Kim_Dong-hwa/Kim_Dong-hwa_0001.jpg",
+        "true_id": "(not enrolled)",
+        "decision": "UNCERTAIN",
+        "best_match": "Yao_Ming",
+        "best_similarity": 0.704,
+        "correct_identity_similarity": null
+      }
+    ]
+  },
+  "calibration": null,
+  "runtime_seconds": 45.0,
+  "plots": [
+    "score_distributions.png",
+    "error_rates_vs_threshold.png"
+  ]
+}

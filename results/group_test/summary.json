@@ -1,0 +1,32 @@
+{
+  "description": "Composite group images: 1 enrolled person (A) + 3 never-enrolled people",
+  "data": "test",
+  "trials": 100,
+  "seed": 7,
+  "accept_threshold": 0.71,
+  "uncertain_threshold": 0.61,
+  "scenarios": {
+    "only_A": {
+      "A_recognized_correctly": 90,
+      "A_uncertain": 6,
+      "A_unknown": 4,
+      "all_4_people_detected": 100,
+      "background_face_unknown": 78,
+      "faces_detected_total": 478,
+      "stranger_unknown": 300,
+      "trials": 100
+    },
+    "full_gallery": {
+      "A_recognized_correctly": 90,
+      "A_uncertain": 6,
+      "A_unknown": 4,
+      "all_4_people_detected": 100,
+      "background_face_uncertain": 1,
+      "background_face_unknown": 77,
+      "faces_detected_total": 478,
+      "stranger_uncertain": 12,
+      "stranger_unknown": 288,
+      "trials": 100
+    }
+  }
+}
